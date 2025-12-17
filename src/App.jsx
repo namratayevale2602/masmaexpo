@@ -9,6 +9,7 @@ import {
 import Layout from "./layout/Layout";
 import Home from "./page/home/Home";
 import Visitors from "./page/visitor/Visitors";
+import VisitorCard from "./page/visitor/VisitorCard";
 import Registration from "./page/exibitor/Registration";
 import Login from "./page/exibitor/Login";
 import Dashboard from "./page/exibitor/dashboard/Dashboard";
@@ -24,6 +25,7 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="visitors" element={<Visitors />} />
+          <Route path="/visitor/:id/card" element={<VisitorCard />} />
           <Route path="register" element={<Registration />} />
           <Route path="login" element={<Login />} />
 
