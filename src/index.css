@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+/* Stall hover effects */
+.stall-container {
+  transition: all 0.3s ease;
+}
+
+.stall-container:hover .stall-info {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Dashed borders for open sides */
+.open-side-top {
+  border-top: 2px dashed #3b82f6;
+}
+
+.open-side-right {
+  border-right: 2px dashed #3b82f6;
+}
+
+.open-side-bottom {
+  border-bottom: 2px dashed #3b82f6;
+}
+
+.open-side-left {
+  border-left: 2px dashed #3b82f6;
+}
+
+/* Aisle styling */
+.aisle-horizontal {
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 10px,
+    #fbbf24 10px,
+    #fbbf24 20px
+  );
+}
+
+.aisle-vertical {
+  background: repeating-linear-gradient(
+    180deg,
+    transparent,
+    transparent 10px,
+    #fbbf24 10px,
+    #fbbf24 20px
+  );
+}
