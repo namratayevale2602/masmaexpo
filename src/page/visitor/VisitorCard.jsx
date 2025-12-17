@@ -43,7 +43,7 @@ const VisitorCard = () => {
   useEffect(() => {
     const checkNetwork = async () => {
       try {
-        const response = await fetch(`http://192.168.1.38:5173`);
+        const response = await fetch(`https://masmaexpo.vercel.app`);
         setNetworkInfo((prev) => ({ ...prev, accessible: response.ok }));
       } catch (err) {
         console.log("Mobile network not accessible from this device");
@@ -191,7 +191,7 @@ const VisitorCard = () => {
               <li>• Make sure backend server is running</li>
               <li>• Check network connection</li>
               <li>• Verify visitor ID is correct</li>
-              <li>• Try accessing from mobile: http://192.168.1.38:5173</li>
+              <li>• Try accessing from mobile: https://masmaexpo.vercel.app</li>
             </ul>
           </div>
 
@@ -232,7 +232,7 @@ const VisitorCard = () => {
               <p className="text-sm text-yellow-700">
                 For QR code scanning on mobile, access this page via: <br />
                 <code className="bg-yellow-100 px-2 py-1 rounded text-xs mt-1">
-                  http://192.168.1.38:5173/visitor/{id}/card
+                  https://masmaexpo.vercel.app/visitor/{id}/card
                 </code>
               </p>
             </div>
@@ -450,7 +450,7 @@ const VisitorCard = () => {
                     <div className="mt-4 text-left">
                       <p className="text-xs text-gray-500 mb-1">Mobile URL:</p>
                       <code className="text-xs bg-gray-100 p-2 rounded block break-all">
-                        http://192.168.1.38:5173/visitor/{id}/card
+                        https://masmaexpo.vercel.app/visitor/{id}/card
                       </code>
                     </div>
                   </div>
@@ -488,7 +488,7 @@ const VisitorCard = () => {
                         </button>
 
                         <a
-                          href={`http://192.168.1.38:5173/visitor/${id}/card`}
+                          href={`https://masmaexpo.vercel.app/visitor/${id}/card`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex-1 bg-gray-100 text-gray-800 px-4 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-all duration-300 flex items-center justify-center"
