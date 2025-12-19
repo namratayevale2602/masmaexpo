@@ -8,9 +8,9 @@ function Layout() {
   return (
     <>
       <ScrollToTop />
-      <Navbar />
+      {/* <Navbar /> */}
       <Outlet />
-      <Footer />
+      {/* <Footer /> */}
     </>
   );
 }
