@@ -43,7 +43,7 @@ const VisitorCard = () => {
   useEffect(() => {
     const checkNetwork = async () => {
       try {
-        const response = await fetch(`http://localhost:5173`);
+        const response = await fetch(`https://masmaexpo.vercel.app`);
         setNetworkInfo((prev) => ({ ...prev, accessible: response.ok }));
       } catch (err) {
         console.log("Mobile network not accessible from this device");
@@ -272,7 +272,7 @@ const VisitorCard = () => {
               <p className="text-sm text-yellow-700">
                 For QR code scanning on mobile, access this page via: <br />
                 <code className="bg-yellow-100 px-2 py-1 rounded text-xs mt-1">
-                  http://localhost:5173/visitor/{id}/card
+                  https://masmaexpo.vercel.app/visitor/{id}/card
                 </code>
               </p>
             </div>
