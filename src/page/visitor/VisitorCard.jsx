@@ -162,13 +162,40 @@ const VisitorCard = () => {
   };
 
   const generateQRCodeUrl = () => {
-    if (visitor?.qr_code_url) return visitor.qr_code_url;
+    console.log(
+      "Visitor QR code data:",
+      visitor?.qr_code_url,
+      visitor?.qr_code_path
+    );
 
-    // Generate QR code with current URL
+    // If visitor has QR code URL from Laravel
+    if (visitor?.qr_code_url) {
+      console.log("Using stored QR code URL:", visitor.qr_code_url);
+
+      // Check if it's a relative URL and prepend backend URL
+      if (visitor.qr_code_url.startsWith("/uploads/")) {
+        const fullUrl = `https://masma-back.demovoting.com${visitor.qr_code_url}`;
+        console.log("Converted to full URL:", fullUrl);
+        return fullUrl;
+      }
+
+      return visitor.qr_code_url;
+    }
+
+    // If visitor has QR code path but no URL
+    if (visitor?.qr_code_path) {
+      const url = `https://masma-back.demovoting.com/uploads/${visitor.qr_code_path}`;
+      console.log("Generated URL from path:", url);
+      return url;
+    }
+
+    // Fallback: Generate QR code with current URL
     const currentUrl = window.location.href;
-    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+    const fallbackUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
       currentUrl
     )}`;
+    console.log("Using fallback QR code URL");
+    return fallbackUrl;
   };
 
   // Network status component
