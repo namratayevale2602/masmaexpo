@@ -43,7 +43,7 @@ const VisitorCard = () => {
   useEffect(() => {
     const checkNetwork = async () => {
       try {
-        const response = await fetch(`https://masmaexpo.vercel.app`);
+        const response = await fetch(`http://localhost:5173`);
         setNetworkInfo((prev) => ({ ...prev, accessible: response.ok }));
       } catch (err) {
         console.log("Mobile network not accessible from this device");
@@ -57,33 +57,61 @@ const VisitorCard = () => {
     const fetchVisitor = async () => {
       try {
         setLoading(true);
+        console.log("Fetching visitor with ID:", id);
 
         // Try multiple endpoints
         const endpoints = [
-          `https://masmaexpo.demovoting.com/api/visitors/${id}/view`,
+          `https://masmaexpo.demovoting.com/api/visitors/${id}`,
         ];
 
         let response = null;
+        let visitorData = null;
 
         for (const endpoint of endpoints) {
           try {
+            console.log(`Trying endpoint: ${endpoint}`);
             response = await axios.get(endpoint, { timeout: 5000 });
-            if (response.data.success) break;
+            console.log("API Response:", response.data);
+
+            // Check different response formats
+            if (response.data && response.data.success && response.data.data) {
+              // Format 1: { success: true, data: {...} }
+              visitorData = response.data.data;
+              console.log("Found data in response.data.data:", visitorData);
+              break;
+            } else if (response.data && response.data.visitor_name) {
+              // Format 2: Direct visitor object
+              visitorData = response.data;
+              console.log("Found direct visitor object:", visitorData);
+              break;
+            } else if (response.data) {
+              // Format 3: Maybe data is directly in response.data
+              visitorData = response.data;
+              console.log("Using response.data directly:", visitorData);
+              break;
+            }
           } catch (err) {
-            console.log(`Failed to fetch from ${endpoint}`);
+            console.log(`Failed to fetch from ${endpoint}:`, err.message);
+            if (err.response?.status === 404) {
+              setError(`Visitor with ID ${id} not found in the database.`);
+              setLoading(false);
+              return;
+            }
           }
         }
 
-        if (response && response.data.success) {
-          setVisitor(response.data.data);
+        if (visitorData) {
+          console.log("Setting visitor state:", visitorData);
+          setVisitor(visitorData);
         } else {
-          setError("Visitor not found. Please check your network connection.");
+          console.log("No visitor data found in response");
+          setError(
+            "Visitor data not found in response. Please check the API response format."
+          );
         }
       } catch (err) {
         console.error("Error fetching visitor:", err);
-        setError(
-          "Failed to load visitor information. Make sure both servers are running."
-        );
+        setError(`Failed to load visitor: ${err.message}`);
       } finally {
         setLoading(false);
       }
@@ -91,6 +119,9 @@ const VisitorCard = () => {
 
     if (id) {
       fetchVisitor();
+    } else {
+      setError("No visitor ID provided");
+      setLoading(false);
     }
   }, [id]);
 
@@ -105,17 +136,23 @@ const VisitorCard = () => {
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (e) {
+      return dateString;
+    }
   };
 
   const getInitials = (name) => {
+    if (!name) return "NA";
     return name
       .split(" ")
       .map((word) => word[0])
@@ -161,8 +198,8 @@ const VisitorCard = () => {
       <div className="min-h-screen bg-linear-to-br from-purple-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading visitor information...</p>
-          <p className="text-sm text-gray-500 mt-2">Connecting to server...</p>
+          <p className="mt-4 text-gray-600">Loading visitor #{id}...</p>
+          <p className="text-sm text-gray-500 mt-2">Fetching from API...</p>
         </div>
       </div>
     );
@@ -179,19 +216,20 @@ const VisitorCard = () => {
           <h1 className="text-2xl font-bold text-gray-800 mb-4">
             Visitor Not Found
           </h1>
-          <p className="text-gray-600 mb-4">
-            {error || "The visitor ID is invalid or the QR code has expired."}
-          </p>
+          <p className="text-gray-600 mb-4 whitespace-pre-line">{error}</p>
 
           <div className="bg-gray-50 p-4 rounded-lg mb-6 text-left">
             <h3 className="font-semibold text-gray-800 mb-2">
-              Troubleshooting:
+              Debug Information:
             </h3>
             <ul className="text-sm text-gray-600 space-y-1">
-              <li>• Make sure backend server is running</li>
-              <li>• Check network connection</li>
-              <li>• Verify visitor ID is correct</li>
-              <li>• Try accessing from mobile: https://masmaexpo.vercel.app</li>
+              <li>• Visitor ID: {id}</li>
+              <li>
+                • API Endpoint: https://masmaexpo.demovoting.com/api/visitors/
+                {id}
+              </li>
+              <li>• Frontend URL: {window.location.href}</li>
+              <li>• Data received: {visitor ? "Yes" : "No"}</li>
             </ul>
           </div>
 
@@ -216,6 +254,8 @@ const VisitorCard = () => {
     );
   }
 
+  console.log("Rendering visitor card with data:", visitor);
+
   return (
     <div className="min-h-screen bg-linear-to-br from-purple-50 to-blue-50 p-4 md:p-8">
       <NetworkStatus />
@@ -232,7 +272,7 @@ const VisitorCard = () => {
               <p className="text-sm text-yellow-700">
                 For QR code scanning on mobile, access this page via: <br />
                 <code className="bg-yellow-100 px-2 py-1 rounded text-xs mt-1">
-                  https://masmaexpo.vercel.app/visitor/{id}/card
+                  http://localhost:5173/visitor/{id}/card
                 </code>
               </p>
             </div>
@@ -249,35 +289,12 @@ const VisitorCard = () => {
         <FaPrint size={24} />
       </button>
 
-      {/* Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="fixed top-8 left-8 bg-white text-blue-600 px-4 py-2 rounded-lg flex items-center shadow-lg hover:shadow-xl transition-all duration-300 z-50 print:hidden"
-      >
-        <FaArrowLeft className="mr-2" />
-        Back
-      </button>
-
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto pt-20">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="flex justify-center space-x-4 mb-4 print:hidden">
-            <div className="flex items-center text-sm text-gray-600">
-              <FaDesktop className="mr-2" />
-              <span>Desktop: localhost:5173</span>
-            </div>
-            <div className="flex items-center text-sm text-gray-600">
-              <FaMobileAlt className="mr-2" />
-              <span>Mobile: 192.168.1.38:5173</span>
-            </div>
-          </div>
-
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
             Visitor ID Card
           </h1>
-          <p className="text-gray-600">
-            Scan the QR code to verify visitor information
-          </p>
         </div>
 
         {/* Main Card */}
@@ -299,7 +316,7 @@ const VisitorCard = () => {
               {/* Basic Info */}
               <div className="text-center md:text-left">
                 <h2 className="text-3xl font-bold mb-2">
-                  {visitor.visitor_name}
+                  {visitor.visitor_name || "No Name"}
                 </h2>
                 {visitor.bussiness_name && (
                   <p className="text-lg opacity-90 mb-1">
@@ -307,7 +324,8 @@ const VisitorCard = () => {
                   </p>
                 )}
                 <p className="opacity-80">
-                  Visitor ID: VIS-{visitor.id.toString().padStart(6, "0")}
+                  Visitor ID: VIS-
+                  {visitor.id?.toString().padStart(6, "0") || "000000"}
                 </p>
 
                 {/* Status Badge */}
@@ -442,145 +460,9 @@ const VisitorCard = () => {
                         SCAN ME
                       </div>
                     </div>
-                    <p className="mt-4 text-sm text-gray-600">
-                      Scan with mobile to view this card
-                    </p>
-
-                    {/* Mobile Access URL */}
-                    <div className="mt-4 text-left">
-                      <p className="text-xs text-gray-500 mb-1">Mobile URL:</p>
-                      <code className="text-xs bg-gray-100 p-2 rounded block break-all">
-                        https://masmaexpo.vercel.app/visitor/{id}/card
-                      </code>
-                    </div>
-                  </div>
-
-                  <div className="flex-1">
-                    <h4 className="text-xl font-semibold text-gray-800 mb-4">
-                      QR Code Information
-                    </h4>
-
-                    <div className="space-y-4">
-                      <div className="p-4 bg-white rounded-xl border border-gray-200">
-                        <h5 className="font-semibold text-gray-800 mb-2">
-                          For Mobile Testing:
-                        </h5>
-                        <ol className="text-sm text-gray-600 space-y-2 list-decimal pl-5">
-                          <li>Open QR scanner on your phone</li>
-                          <li>Make sure phone is on same WiFi network</li>
-                          <li>Scan this QR code</li>
-                          <li>
-                            It will open:{" "}
-                            <code className="bg-gray-100 px-1 rounded">
-                              192.168.1.38:5173
-                            </code>
-                          </li>
-                        </ol>
-                      </div>
-
-                      <div className="flex space-x-3">
-                        <button
-                          onClick={() => window.print()}
-                          className="flex-1 bg-linear-to-r from-blue-600 to-purple-600 text-white px-4 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center"
-                        >
-                          <FaPrint className="mr-2" />
-                          Print
-                        </button>
-
-                        <a
-                          href={`https://masmaexpo.vercel.app/visitor/${id}/card`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex-1 bg-gray-100 text-gray-800 px-4 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-all duration-300 flex items-center justify-center"
-                        >
-                          <FaExternalLinkAlt className="mr-2" />
-                          Open Mobile
-                        </a>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Card Footer */}
-          <div className="bg-gray-50 px-8 py-4 border-t border-gray-200">
-            <div className="flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-              <div>
-                <span className="font-semibold">Issued by:</span> Visitor
-                Management System
-              </div>
-              <div className="mt-2 md:mt-0">
-                <span className="font-semibold">Network:</span> {networkInfo.ip}
-                :{networkInfo.port}
-              </div>
-              <div className="mt-2 md:mt-0">
-                <span className="font-semibold">Card ID:</span>{" "}
-                {visitor.id.toString().padStart(10, "0")}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Testing Instructions */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 mb-8 print:hidden">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">
-            Mobile Testing Instructions
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-4 bg-blue-50 rounded-xl">
-              <h4 className="font-semibold text-blue-800 mb-3 flex items-center">
-                <FaMobileAlt className="mr-2" />
-                From Mobile Phone:
-              </h4>
-              <ol className="space-y-2 text-sm text-blue-700">
-                <li className="flex items-start">
-                  <span className="font-bold mr-2">1.</span>
-                  <span>Connect phone to same WiFi as computer</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="font-bold mr-2">2.</span>
-                  <span>Open camera or QR scanner app</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="font-bold mr-2">3.</span>
-                  <span>Scan the QR code above</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="font-bold mr-2">4.</span>
-                  <span>Tap the link that appears</span>
-                </li>
-              </ol>
-            </div>
-
-            <div className="p-4 bg-green-50 rounded-xl">
-              <h4 className="font-semibold text-green-800 mb-3 flex items-center">
-                <FaDesktop className="mr-2" />
-                From Computer:
-              </h4>
-              <ol className="space-y-2 text-sm text-green-700">
-                <li className="flex items-start">
-                  <span className="font-bold mr-2">1.</span>
-                  <span>Ensure both servers are running</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="font-bold mr-2">2.</span>
-                  <span>
-                    Backend: <code>php artisan serve</code>
-                  </span>
-                </li>
-                <li className="flex items-start">
-                  <span className="font-bold mr-2">3.</span>
-                  <span>
-                    Frontend: <code>npm run dev -- --host 0.0.0.0</code>
-                  </span>
-                </li>
-                <li className="flex items-start">
-                  <span className="font-bold mr-2">4.</span>
-                  <span>Test with mobile on same network</span>
-                </li>
-              </ol>
             </div>
           </div>
         </div>
