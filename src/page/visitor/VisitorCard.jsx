@@ -161,42 +161,15 @@ const VisitorCard = () => {
       .slice(0, 2);
   };
 
-  const generateQRCodeUrl = () => {
-    console.log(
-      "Visitor QR code data:",
-      visitor?.qr_code_url,
-      visitor?.qr_code_path
-    );
+  // const generateQRCodeUrl = () => {
+  //   if (visitor?.qr_code_url) return visitor.qr_code_url;
 
-    // If visitor has QR code URL from Laravel
-    if (visitor?.qr_code_url) {
-      console.log("Using stored QR code URL:", visitor.qr_code_url);
-
-      // Check if it's a relative URL and prepend backend URL
-      if (visitor.qr_code_url.startsWith("/uploads/")) {
-        const fullUrl = `https://masma-back.demovoting.com${visitor.qr_code_url}`;
-        console.log("Converted to full URL:", fullUrl);
-        return fullUrl;
-      }
-
-      return visitor.qr_code_url;
-    }
-
-    // If visitor has QR code path but no URL
-    if (visitor?.qr_code_path) {
-      const url = `https://masma-back.demovoting.com/uploads/${visitor.qr_code_path}`;
-      console.log("Generated URL from path:", url);
-      return url;
-    }
-
-    // Fallback: Generate QR code with current URL
-    const currentUrl = window.location.href;
-    const fallbackUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-      currentUrl
-    )}`;
-    console.log("Using fallback QR code URL");
-    return fallbackUrl;
-  };
+  //   // Generate QR code with current URL
+  //   const currentUrl = window.location.href;
+  //   return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+  //     currentUrl
+  //   )}`;
+  // };
 
   // Network status component
   const NetworkStatus = () => (
@@ -471,7 +444,7 @@ const VisitorCard = () => {
             </div>
 
             {/* QR Code Section */}
-            <div className="mt-8 pt-8 border-t border-gray-200">
+            {/* <div className="mt-8 pt-8 border-t border-gray-200">
               <div className="bg-linear-to-r from-blue-50 to-purple-50 rounded-2xl p-6">
                 <div className="flex flex-col md:flex-row items-center">
                   <div className="mb-6 md:mb-0 md:mr-8 text-center">
@@ -490,7 +463,7 @@ const VisitorCard = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
